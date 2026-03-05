@@ -52,8 +52,8 @@ export default function MemberForm({
     initialData?.generation || "",
   );
 
-  const [branchId, setBranchId] = useState<number | "">(
-    initialData?.branch_id || "",
+  const [branchId, setBranchId] = useState<number | null>(
+    initialData?.branch_id ?? null,
   );
   const [birthMonth, setBirthMonth] = useState<number | "">(
     initialData?.birth_month || "",
@@ -383,7 +383,6 @@ export default function MemberForm({
             </label>
             <input
               type="number"
-              r
               min="1"
               value={generation}
               onChange={(e) =>
