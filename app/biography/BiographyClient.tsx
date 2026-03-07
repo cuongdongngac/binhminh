@@ -1,85 +1,86 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Edit2, Plus } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, Edit2 } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
+import RichTextEditor from '@/components/editor/RichTextEditor'
 
 export default function BiographyClient() {
-  const searchParams = useSearchParams();
-  const personId = searchParams.get("person_id");
+  const searchParams = useSearchParams()
+  const personId = searchParams.get('person_id')
 
-  const supabase = createClient();
+  const supabase = createClient()
 
-  const [personName, setPersonName] = useState("");
-  const [biographyHtml, setBiographyHtml] = useState<string | null>(null);
-  const [biographyDraft, setBiographyDraft] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [personName, setPersonName] = useState('')
+  const [biographyHtml, setBiographyHtml] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!personId) return;
+    if (!personId) return
 
     const fetchData = async () => {
-      setLoading(true);
+      setLoading(true)
 
-      // Load person
+      // Lấy thông tin person
       const { data: person } = await supabase
-        .from("persons")
-        .select("full_name")
-        .eq("id", personId)
-        .single();
+        .from('persons')
+        .select('full_name')
+        .eq('id', personId)
+        .single()
 
       if (person) {
-        setPersonName(person.full_name);
+        setPersonName(person.full_name)
       }
 
-      // Load biography
+      // Lấy biography
       const { data: bio } = await supabase
-        .from("person_biography")
-        .select("biography_html")
-        .eq("person_id", personId)
-        .maybeSingle();
+        .from('person_biography')
+        .select('biography_html')
+        .eq('person_id', personId)
+        .maybeSingle()
 
       if (bio?.biography_html) {
-        setBiographyHtml(bio.biography_html);
-        setBiographyDraft(bio.biography_html);
+        setBiographyHtml(bio.biography_html)
+        setDraft(bio.biography_html)
       }
 
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [personId, supabase]);
-
-  const saveBiography = async () => {
-    if (!personId) return;
-
-    setSaving(true);
-
-    const { error } = await supabase
-      .from("person_biography")
-      .upsert({
-        person_id: personId,
-        biography_html: biographyDraft,
-      });
-
-    if (!error) {
-      setBiographyHtml(biographyDraft);
-      setIsEditing(false);
+      setLoading(false)
     }
 
-    setSaving(false);
-  };
+    fetchData()
+  }, [personId, supabase])
+
+  const saveBiography = async () => {
+    if (!personId) return
+
+    setSaving(true)
+
+    const { error } = await supabase
+      .from('person_biography')
+      .upsert({
+        person_id: personId,
+        biography_html: draft
+      })
+
+    if (!error) {
+      setBiographyHtml(draft)
+      setIsEditing(false)
+    }
+
+    setSaving(false)
+  }
 
   if (!personId) {
     return (
       <div className="p-10 text-center text-stone-500">
         Không tìm thấy person_id
       </div>
-    );
+    )
   }
 
   return (
@@ -88,45 +89,34 @@ export default function BiographyClient() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
 
-        {/* Back */}
         <Link
           href={`/dashboard?memberModalId=${personId}`}
-          className="flex items-center gap-1.5 px-4 py-2 bg-stone-100/80 text-stone-700 rounded-full hover:bg-stone-200 font-semibold text-sm shadow-sm border border-stone-200/50 transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 bg-stone-100 text-stone-700 rounded-full hover:bg-stone-200 font-semibold text-sm border border-stone-200"
         >
           <ArrowLeft className="size-4" />
           <span className="hidden sm:inline">
-            Quay lại: {personName}
+            Quay lại {personName}
           </span>
         </Link>
 
-        {/* Action */}
         {!isEditing && (
-          biographyHtml ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-amber-100/80 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm shadow-sm border border-amber-200/50 transition-colors"
-            >
-              <Edit2 className="size-4" />
-              <span>Sửa tiểu sử</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-amber-100/80 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm shadow-sm border border-amber-200/50 transition-colors"
-            >
-              <Plus className="size-4" />
-              <span>Thêm tiểu sử</span>
-            </button>
-          )
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-amber-100 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm border border-amber-200"
+          >
+            <Edit2 className="size-4" />
+            <span>Cập nhật tiểu sử</span>
+          </button>
         )}
 
       </div>
 
       {/* Content */}
-      <div className="bg-white/90 backdrop-blur rounded-3xl shadow-xl border border-stone-200 p-8">
+      <div className="bg-white rounded-3xl shadow-xl border border-stone-200 p-8">
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
+
+          <div className="flex justify-center py-20">
             <div className="size-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
 
@@ -134,17 +124,19 @@ export default function BiographyClient() {
 
           <>
            <h1 className="text-2xl font-serif font-bold text-stone-800 mb-6">
-  {biographyHtml ? "Chỉnh sửa tiểu sử" : "Thêm tiểu sử"} — {personName}
-</h1>
+              {biographyHtml ? "Chỉnh sửa tiểu sử" : "Thêm tiểu sử"} — {personName}
+            </h1>
 
-            <textarea
-              value={biographyDraft}
-              onChange={(e) => setBiographyDraft(e.target.value)}
-              className="w-full h-[420px] p-4 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
-              placeholder="Nhập tiểu sử..."
-            />
+            {/* CKEditor */}
+            <div className="mt-4 min-h-[400px]">
+              <RichTextEditor
+                value={draft}
+                onChange={setDraft}
+              />
+            </div>
 
-            <div className="flex justify-end gap-3 mt-4">
+            {/* Buttons */}
+            <div className="flex justify-end gap-3 mt-6">
 
               <button
                 onClick={() => setIsEditing(false)}
@@ -158,7 +150,7 @@ export default function BiographyClient() {
                 disabled={saving}
                 className="px-4 py-2 bg-amber-600 text-white rounded-full hover:bg-amber-700 font-semibold"
               >
-                {saving ? "Đang lưu..." : "Lưu"}
+                {saving ? 'Đang lưu...' : 'Lưu'}
               </button>
 
             </div>
@@ -167,7 +159,7 @@ export default function BiographyClient() {
         ) : biographyHtml ? (
 
           <div
-            className="prose max-w-none"
+            className="ck-content"
             dangerouslySetInnerHTML={{ __html: biographyHtml }}
           />
 
@@ -180,6 +172,51 @@ export default function BiographyClient() {
         )}
 
       </div>
+
+      {/* CKEditor content styles */}
+      <style jsx global>{`
+        .ck-content h1 {
+          font-size: 32px;
+          font-weight: 700;
+          margin-bottom: 12px;
+        }
+        .ck-content h2 {
+          font-size: 26px;
+          font-weight: 600;
+          margin-bottom: 10px;
+        }
+        .ck-content h3 {
+          font-size: 22px;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        .ck-content p {
+          margin-bottom: 12px;
+          line-height: 1.6;
+        }
+        .ck-content ul,
+        .ck-content ol {
+          margin-left: 20px;
+          margin-bottom: 12px;
+        }
+        .ck-content blockquote {
+          border-left: 4px solid #2fa4e7;
+          padding-left: 10px;
+          color: #666;
+          margin: 10px 0;
+        }
+        .ck-content table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 10px;
+        }
+        .ck-content table td,
+        .ck-content table th {
+          border: 1px solid #ddd;
+          padding: 8px;
+        }
+      `}</style>
+
     </div>
-  );
+  )
 }
