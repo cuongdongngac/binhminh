@@ -182,6 +182,12 @@ export default function MemberDetailModal() {
                 person && (
                   <>
                     <Link
+                      href={`/biography?person_id=${person.id}`}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-amber-100/80 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm shadow-sm border border-amber-200/50 transition-colors"
+                    >
+                      Tiểu sử
+                    </Link>
+                    <Link
                       href={`/dashboard/members/${person.id}`}
                       className="flex items-center gap-1.5 px-4 py-2 bg-amber-100/80 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm shadow-sm border border-amber-200/50 transition-colors"
                     >
