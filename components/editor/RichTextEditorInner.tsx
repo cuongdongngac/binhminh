@@ -1,8 +1,9 @@
+```tsx
 'use client';
 
 import React, { useCallback } from 'react';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 export interface RichTextEditorInnerProps {
   value: string;
@@ -48,8 +49,9 @@ export function RichTextEditorInner({
   readOnly = false,
   className,
 }: RichTextEditorInnerProps) {
+
   const handleChange = useCallback(
-    (_event: unknown, editor: { getData: () => string }) => {
+    (_event: unknown, editor: any) => {
       onChange(editor.getData());
     },
     [onChange]
@@ -58,7 +60,7 @@ export function RichTextEditorInner({
   return (
     <div className={className}>
       <CKEditor
-        editor={ClassicEditor}
+        editor={ClassicEditor as any}
         data={value}
         config={{
           ...EDITOR_CONFIG,
@@ -67,6 +69,7 @@ export function RichTextEditorInner({
         onChange={handleChange}
         disabled={readOnly}
       />
+
       <style jsx global>{`
         .ck-editor__editable_inline {
           min-height: 350px;
@@ -75,3 +78,4 @@ export function RichTextEditorInner({
     </div>
   );
 }
+```

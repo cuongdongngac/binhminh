@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { Edit2, Plus } from "lucide-react";
 
 export default function BiographyPage() {
   const searchParams = useSearchParams();
   const personId = searchParams.get("person_id");
 
-  const [biography, setBiography] = useState<string>("");
-  const [personName, setPersonName] = useState<string>("");
+  const [biography, setBiography] = useState<string | null>(null);
+  const [personName, setPersonName] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const supabase = createClient();
 
@@ -18,54 +20,100 @@ export default function BiographyPage() {
     if (!personId) return;
 
     async function loadData() {
-      console.log("Loading biography for:", personId);
+      try {
+        // Load biography
+        const { data: bioData } = await supabase
+          .from("person_biography")
+          .select("biography_html")
+          .eq("person_id", personId);
 
-      // Lấy tiểu sử
-      const { data: bioData, error: bioError } = await supabase
-        .from("person_biography")
-        .select("biography_html")
-        .eq("person_id", personId);
+        if (bioData && bioData.length > 0) {
+          setBiography(bioData[0].biography_html);
+        }
 
-       
-      if (bioData && bioData.length > 0) {
-        setBiography(bioData[0].biography_html || "rêrererere");
-      }
-      
+        // Load person name
+        const { data: personData } = await supabase
+          .from("persons")
+          .select("full_name")
+          .eq("id", personId);
 
+        if (personData && personData.length > 0) {
+          setPersonName(personData[0].full_name);
+        }
 
-      // Lấy tên người
-      const { data: personData, error: personError } = await supabase
-        .from("persons")
-        .select("full_name")
-        .eq("id", personId);
+        // Check admin
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
-      console.log("personData:", personData, personError);
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
 
-      if (personData && personData.length > 0) {
-        setPersonName(personData[0].full_name || "");
+          if (profile?.role === "admin") {
+            setIsAdmin(true);
+          }
+        }
+      } catch (err) {
+        console.error(err);
       }
     }
 
     loadData();
-  }, [personId]);
+  }, [personId, supabase]);
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "30px" }}>
-      
-      {/* Nút quay lại */}
-      <div style={{ marginBottom: "20px" }}>
-        <Link href={`/dashboard?memberModalId=${personId}`}>
+    <div className="max-w-3xl mx-auto p-8">
+
+      {/* Header bar */}
+      <div className="flex items-center justify-between mb-6">
+
+        {/* Back */}
+        <Link
+          href={`/dashboard?memberModalId=${personId}`}
+          className="text-amber-700 hover:underline font-medium"
+        >
           ← Quay lại: {personName || "Trang trước"}
         </Link>
+
+        {/* Action buttons */}
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+
+            {biography ? (
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-amber-100/80 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm shadow-sm border border-amber-200/50 transition-colors">
+                <Edit2 className="size-4" />
+                Chỉnh sửa
+              </button>
+            ) : (
+              <button className="flex items-center gap-1.5 px-4 py-2 bg-amber-100/80 text-amber-800 rounded-full hover:bg-amber-200 font-semibold text-sm shadow-sm border border-amber-200/50 transition-colors">
+                <Plus className="size-4" />
+                Thêm tiểu sử
+              </button>
+            )}
+
+          </div>
+        )}
       </div>
 
-      <h1>Tiểu sử</h1>
+      {/* Title */}
+      <h1 className="text-3xl font-serif font-bold mb-6">
+        Tiểu sử
+      </h1>
 
-      {/* Nội dung tiểu sử */}
+      {/* Biography */}
       {biography ? (
-        <div dangerouslySetInnerHTML={{ __html: biography }} />
+        <div
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: biography }}
+        />
       ) : (
-        <p>Chưa có tiểu sử cho cá nhân này.</p>
+        <p className="text-stone-500">
+          Chưa có tiểu sử cho cá nhân này.
+        </p>
       )}
     </div>
   );
