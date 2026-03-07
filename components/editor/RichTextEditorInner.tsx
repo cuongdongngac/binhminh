@@ -1,4 +1,3 @@
-```tsx
 'use client';
 
 import React, { useCallback } from 'react';
@@ -13,7 +12,7 @@ export interface RichTextEditorInnerProps {
   className?: string;
 }
 
-const EDITOR_CONFIG = {
+const EDITOR_CONFIG: any = {
   toolbar: [
     'heading',
     '|',
@@ -63,19 +62,12 @@ export function RichTextEditorInner({
         editor={ClassicEditor as any}
         data={value}
         config={{
-          ...EDITOR_CONFIG,
+          ...(EDITOR_CONFIG as any),
           placeholder,
         }}
         onChange={handleChange}
         disabled={readOnly}
       />
-
-      <style jsx global>{`
-        .ck-editor__editable_inline {
-          min-height: 350px;
-        }
-      `}</style>
     </div>
   );
 }
-```
