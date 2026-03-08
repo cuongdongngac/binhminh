@@ -20,7 +20,7 @@ export function BranchSelect({ value, onChange }: BranchSelectProps) {
       const { data, error } = await supabase
         .from("branches")
         .select("id, name")
-        .order("id");
+        .order("code");
 
       if (!error && data) {
         setOptions(data);
