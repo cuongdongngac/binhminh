@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Edit2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import RichTextEditor from '@/components/editor/RichTextEditor'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default function BiographyClient() {
   const searchParams = useSearchParams()
@@ -15,6 +16,8 @@ export default function BiographyClient() {
 
   const [personName, setPersonName] = useState('')
   const [biographyHtml, setBiographyHtml] = useState<string | null>(null)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+
   const [draft, setDraft] = useState('')
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -37,16 +40,22 @@ export default function BiographyClient() {
         setPersonName(person.full_name)
       }
 
-      // Lấy biography
+      // Lấy biography + audio
       const { data: bio } = await supabase
         .from('person_biography')
-        .select('biography_html')
+        .select('biography_html, audio_url')
         .eq('person_id', personId)
         .maybeSingle()
 
-      if (bio?.biography_html) {
-        setBiographyHtml(bio.biography_html)
-        setDraft(bio.biography_html)
+      if (bio) {
+        if (bio.biography_html) {
+          setBiographyHtml(bio.biography_html)
+          setDraft(bio.biography_html)
+        }
+
+        if (bio.audio_url) {
+          setAudioUrl(bio.audio_url)
+        }
       }
 
       setLoading(false)
@@ -123,7 +132,7 @@ export default function BiographyClient() {
         ) : isEditing ? (
 
           <>
-           <h1 className="text-2xl font-serif font-bold text-stone-800 mb-6">
+            <h1 className="text-2xl font-serif font-bold text-stone-800 mb-6">
               {biographyHtml ? "Chỉnh sửa tiểu sử" : "Thêm tiểu sử"} — {personName}
             </h1>
 
@@ -158,10 +167,23 @@ export default function BiographyClient() {
 
         ) : biographyHtml ? (
 
-          <div
-            className="ck-content"
-            dangerouslySetInnerHTML={{ __html: biographyHtml }}
-          />
+          <>
+            {/* Audio player nếu có */}
+            {audioUrl && (
+              <div className="mb-6">
+                <AudioPlayer
+                  title={`🔊 Nghe tiểu sử ${personName}`}
+                  src={audioUrl}
+                />
+              </div>
+            )}
+
+            {/* Biography */}
+            <div
+              className="ck-content"
+              dangerouslySetInnerHTML={{ __html: biographyHtml }}
+            />
+          </>
 
         ) : (
 

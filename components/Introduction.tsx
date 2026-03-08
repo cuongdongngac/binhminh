@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-
+import MiniVideoPlayer from "./MiniVideoPlayer";
 type Section = {
   title: string;
   content?: string[];
@@ -104,7 +104,10 @@ export default function Introduction() {
           qua các thời kỳ lịch sử.
         </p>
       </section>
-
+      <MiniVideoPlayer
+        src="https://mediaserver.huph.edu.vn/vod/nas1videos/phahe/dongngac.mp4"
+        title="Video giới thiệu"
+      />
       {/* Sections */}
       {sections.map((section, index) => (
         <motion.section
