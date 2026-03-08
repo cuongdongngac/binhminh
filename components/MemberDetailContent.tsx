@@ -44,7 +44,10 @@ export default function MemberDetailContent({
   const isNoteLong = note.length > 300;
 
   const isDeceased =
-    !!person.death_year || !!person.death_month || !!person.death_day;
+    person.is_deceased ||
+    !!person.death_year ||
+    !!person.death_month ||
+    !!person.death_day;
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -283,6 +286,7 @@ export default function MemberDetailContent({
                 const ageData = calculateAge(
                   person.birth_year,
                   person.death_year,
+                  person.is_deceased,
                 );
                 if (!ageData) return null;
                 return (
@@ -297,7 +301,7 @@ export default function MemberDetailContent({
                       ></span>
                       <p className="text-[11px] font-bold text-amber-800/60 uppercase tracking-widest">
                         {ageData.isDeceased
-                          ? ageData.age >= 60
+                          ? (ageData.age != null && ageData.age >= 60)
                             ? "Hưởng thọ"
                             : "Hưởng dương"
                           : "Tuổi"}
@@ -305,7 +309,7 @@ export default function MemberDetailContent({
                     </div>
                     <div className="pl-4 relative z-10">
                       <p className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-linear-to-br from-amber-700 to-amber-900 tracking-tight">
-                        {ageData.age}
+                        {ageData.age ?? "?"}
                         <span className="text-xs sm:text-sm font-bold text-amber-700/60 ml-1.5 uppercase tracking-wider">
                           tuổi
                         </span>

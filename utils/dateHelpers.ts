@@ -46,11 +46,16 @@ export function getLunarDateString(
 export function calculateAge(
   birthYear: number | null,
   deathYear: number | null,
-): { age: number; isDeceased: boolean } | null {
+  isDeceased?: boolean,
+): { age: number | null; isDeceased: boolean } | null {
   if (!birthYear) return null;
 
   if (deathYear) {
     return { age: deathYear - birthYear, isDeceased: true };
+  }
+
+  if (isDeceased) {
+    return { age: null, isDeceased: true };
   }
 
   return { age: new Date().getFullYear() - birthYear, isDeceased: false };
