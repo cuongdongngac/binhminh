@@ -19,6 +19,7 @@ export default function BiographyClient() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   const [draft, setDraft] = useState("");
+  const [audioDraft, setAudioDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -55,6 +56,7 @@ export default function BiographyClient() {
 
         if (bio.audio_url) {
           setAudioUrl(bio.audio_url);
+          setAudioDraft(bio.audio_url);
         }
       }
 
@@ -72,10 +74,12 @@ export default function BiographyClient() {
     const { error } = await supabase.from("person_biography").upsert({
       person_id: personId,
       biography_html: draft,
+      audio_url: audioDraft || null,
     });
 
     if (!error) {
       setBiographyHtml(draft);
+      setAudioUrl(audioDraft || null);
       setIsEditing(false);
     }
 
@@ -109,7 +113,10 @@ export default function BiographyClient() {
 
             {!isEditing && (
               <button
-                onClick={() => setIsEditing(true)}
+                onClick={() => {
+                  setIsEditing(true);
+                  setAudioDraft(audioUrl || ""); // Set current audio URL when entering edit mode
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-md"
               >
                 <Edit2 className="w-4 h-4" />
@@ -145,9 +152,29 @@ export default function BiographyClient() {
 
               {/* Editor */}
               <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nội dung tiểu sử
+                </label>
                 <div className="bg-gray-50 rounded-lg p-1">
                   <RichTextEditor value={draft} onChange={setDraft} />
                 </div>
+              </div>
+
+              {/* Audio URL */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  URL Audio (tùy chọn)
+                </label>
+                <input
+                  type="url"
+                  value={audioDraft}
+                  onChange={(e) => setAudioDraft(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none"
+                  placeholder="Nhập URL file audio (ví dụ: https://example.com/audio.mp3)"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Nhập URL đầy đủ của file audio. Bỏ trống nếu không có audio.
+                </p>
               </div>
 
               {/* Action Buttons */}
