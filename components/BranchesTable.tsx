@@ -2,7 +2,17 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
-import { Users, Home, User, Search, Filter } from "lucide-react";
+import {
+  Users,
+  Home,
+  User,
+  Search,
+  Filter,
+  Edit2,
+  Save,
+  X,
+  Check,
+} from "lucide-react";
 
 export interface BranchRow {
   id: number;
@@ -19,6 +29,12 @@ export default function BranchesTable() {
   const [branches, setBranches] = useState<BranchRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForms, setEditForms] = useState<{
+    [key: number]: Partial<BranchRow>;
+  }>({});
+  const [saving, setSaving] = useState<{ [key: number]: boolean }>({});
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const supabase = createClient();
 
@@ -37,7 +53,42 @@ export default function BranchesTable() {
       setLoading(false);
     };
 
+    // Check if user is admin (you can implement proper auth check here)
+    const checkAdmin = async () => {
+      // Use proper auth check like MemberDetailModal
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        const adminStatus = profile?.role === "admin";
+        console.log(
+          "User:",
+          user.email,
+          "Role:",
+          profile?.role,
+          "Admin status:",
+          adminStatus,
+        );
+        setIsAdmin(adminStatus);
+      } catch (error) {
+        console.error("Error checking admin role:", error);
+        setIsAdmin(false);
+      }
+    };
+
     fetchBranches();
+    checkAdmin();
   }, []);
 
   const filteredBranches = branches.filter(
@@ -47,6 +98,78 @@ export default function BranchesTable() {
       branch.founder?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       branch.church?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const handleEdit = (branch: BranchRow) => {
+    setEditingId(branch.id);
+    setEditForms((prev) => ({
+      ...prev,
+      [branch.id]: {
+        name: branch.name,
+        code: branch.code,
+        description: branch.description,
+        founder: branch.founder,
+        church: branch.church,
+      },
+    }));
+  };
+
+  const handleSave = async (branchId: number) => {
+    setSaving((prev) => ({ ...prev, [branchId]: true }));
+
+    const editForm = editForms[branchId];
+    const { error } = await supabase
+      .from("branches")
+      .update({
+        name: editForm.name,
+        code: editForm.code,
+        description: editForm.description,
+        founder: editForm.founder,
+        church: editForm.church,
+      })
+      .eq("id", branchId);
+
+    if (!error) {
+      // Update local state
+      setBranches(
+        branches.map((branch) =>
+          branch.id === branchId ? { ...branch, ...editForm } : branch,
+        ),
+      );
+      setEditingId(null);
+      // Remove edit form after successful save
+      setEditForms((prev) => {
+        const newForms = { ...prev };
+        delete newForms[branchId];
+        return newForms;
+      });
+    }
+
+    setSaving((prev) => ({ ...prev, [branchId]: false }));
+  };
+
+  const handleCancel = (branchId: number) => {
+    setEditingId(null);
+    // Remove edit form
+    setEditForms((prev) => {
+      const newForms = { ...prev };
+      delete newForms[branchId];
+      return newForms;
+    });
+  };
+
+  const handleInputChange = (
+    branchId: number,
+    field: keyof BranchRow,
+    value: string,
+  ) => {
+    setEditForms((prev) => ({
+      ...prev,
+      [branchId]: {
+        ...prev[branchId],
+        [field]: value || null,
+      },
+    }));
+  };
 
   if (loading) {
     return (
@@ -109,99 +232,192 @@ export default function BranchesTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredBranches.map((branch) => (
-              <tr
-                key={branch.id}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <span className="text-blue-600 font-semibold text-sm">
-                        {branch.code ? branch.code.slice(-2) : "N/A"}
-                      </span>
+            {filteredBranches.map((branch) => {
+              const isEditing = editingId === branch.id;
+              const editForm = editForms[branch.id] || {};
+
+              return (
+                <tr
+                  key={branch.id}
+                  className={
+                    isEditing
+                      ? "bg-amber-50"
+                      : "hover:bg-gray-50 transition-colors"
+                  }
+                >
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editForm.code || ""}
+                        onChange={(e) =>
+                          handleInputChange(branch.id, "code", e.target.value)
+                        }
+                        className="w-full px-2 py-1 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm"
+                        placeholder="Mã chi"
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-blue-600 font-semibold text-sm">
+                            {branch.code ? branch.code.slice(-2) : "N/A"}
+                          </span>
+                        </div>
+                        <span className="font-medium text-gray-900">
+                          {branch.code || "—"}
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editForm.name || ""}
+                        onChange={(e) =>
+                          handleInputChange(branch.id, "name", e.target.value)
+                        }
+                        className="w-full px-2 py-1 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm"
+                        placeholder="Tên chi họ"
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-900 font-medium">
+                          {branch.name}
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editForm.founder || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            branch.id,
+                            "founder",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm"
+                        placeholder="Người sáng lập"
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">
+                          {branch.founder || "—"}
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editForm.church || ""}
+                        onChange={(e) =>
+                          handleInputChange(branch.id, "church", e.target.value)
+                        }
+                        className="w-full px-2 py-1 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm"
+                        placeholder="Nhà thờ họ"
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <Home className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">
+                          {branch.church || "—"}
+                        </span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {isEditing ? (
+                      <textarea
+                        value={editForm.description || ""}
+                        onChange={(e) =>
+                          handleInputChange(
+                            branch.id,
+                            "description",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full px-2 py-1 border border-amber-300 rounded focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm resize-none"
+                        rows={2}
+                        placeholder="Mô tả"
+                      />
+                    ) : (
+                      <div className="max-w-xs">
+                        <p
+                          className="text-gray-600 truncate"
+                          title={branch.description || undefined}
+                        >
+                          {branch.description || "—"}
+                        </p>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={() => handleSave(branch.id)}
+                            disabled={saving[branch.id]}
+                            className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 text-xs"
+                          >
+                            <Save className="w-3 h-3" />
+                            {saving[branch.id] ? "Lưu..." : "Lưu"}
+                          </button>
+                          <button
+                            onClick={() => handleCancel(branch.id)}
+                            className="p-1 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                            title="Hủy"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleEdit(branch)}
+                              className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                              title="Chỉnh sửa chi họ"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              />
+                            </svg>
+                          </button>
+                        </>
+                      )}
                     </div>
-                    <span className="font-medium text-gray-900">
-                      {branch.code || "—"}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-gray-900 font-medium">
-                      {branch.name}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <User className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-gray-600">
-                      {branch.founder || "—"}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <Home className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-gray-600">
-                      {branch.church || "—"}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="max-w-xs">
-                    <p
-                      className="text-gray-600 truncate"
-                      title={branch.description || undefined}
-                    >
-                      {branch.description || "—"}
-                    </p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-center gap-2">
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
-                    <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
             {filteredBranches.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-6 py-12 text-center">
