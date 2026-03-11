@@ -5,18 +5,31 @@ import { List, ListTree, Network, GitBranch, BookOpen } from "lucide-react";
 import { useDashboard } from "./DashboardContext";
 import { useRouter } from "next/navigation";
 
-export type ViewMode = "list" | "tree" | "mindmap";
+export type ViewMode =
+  | "list"
+  | "tree"
+  | "mindmap"
+  | "branches"
+  | "introduction";
 
 export default function ViewToggle() {
   const { view: currentView, setView } = useDashboard();
   const router = useRouter();
 
   const tabs = [
-    { id: "introduction", label: "Giới thiệu", icon: <BookOpen className="size-4" /> },
+    {
+      id: "introduction",
+      label: "Giới thiệu",
+      icon: <BookOpen className="size-4" />,
+    },
     { id: "list", label: "Danh sách", icon: <List className="size-4" /> },
     { id: "tree", label: "Sơ đồ cây", icon: <Network className="size-4" /> },
     { id: "mindmap", label: "Mindmap", icon: <ListTree className="size-4" /> },
-    { id: "branches", label: "Các chi", icon: <GitBranch className="size-4" /> },
+    {
+      id: "branches",
+      label: "Các chi",
+      icon: <GitBranch className="size-4" />,
+    },
   ] as const;
 
   return (
@@ -28,16 +41,6 @@ export default function ViewToggle() {
           <button
             key={tab.id}
             onClick={() => {
-              if (tab.id === "branches") {
-                router.push("/branches");
-                return;
-              }
-
-              if (tab.id === "introduction") {
-                router.push("/introduction");
-                return;
-              }
-
               setView(tab.id as ViewMode);
             }}
             className={`relative px-4 sm:px-6 py-1.5 sm:py-2.5 text-sm font-semibold rounded-full transition-colors duration-300 ease-in-out z-10 flex items-center gap-2 ${

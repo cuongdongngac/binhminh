@@ -4,17 +4,23 @@ import PersonCard from "@/components/PersonCard";
 import { Person } from "@/types";
 import { ArrowUpDown, Filter, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function DashboardMemberList({
   initialPersons,
   canEdit = false,
+  totalCount: propTotalCount,
 }: {
   initialPersons: Person[];
   canEdit?: boolean;
+  totalCount?: number;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOption, setSortOption] = useState("updated_desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(50);
+  const [totalCount, setTotalCount] = useState(propTotalCount || 0);
+  const [loading, setLoading] = useState(false);
 
   const [filterOption, setFilterOption] = useState("all");
 
@@ -52,45 +58,75 @@ export default function DashboardMemberList({
     return matchesSearch && matchesFilter;
   });
 
+  // Sort filtered persons
   const sortedPersons = [...filteredPersons].sort((a, b) => {
     switch (sortOption) {
+      case "name_asc":
+        return a.full_name.localeCompare(b.full_name);
+      case "name_desc":
+        return b.full_name.localeCompare(a.full_name);
       case "birth_asc":
-        return (a.birth_year || 9999) - (b.birth_year || 9999);
+        return (a.birth_year || 0) - (b.birth_year || 0);
       case "birth_desc":
         return (b.birth_year || 0) - (a.birth_year || 0);
-      case "name_asc":
-        return a.full_name.localeCompare(b.full_name, "vi");
-      case "name_desc":
-        return b.full_name.localeCompare(a.full_name, "vi");
-      case "updated_desc":
-        return (
-          new Date(b.updated_at || 0).getTime() -
-          new Date(a.updated_at || 0).getTime()
-        );
       case "updated_asc":
         return (
           new Date(a.updated_at || 0).getTime() -
           new Date(b.updated_at || 0).getTime()
         );
-      case "generation_asc":
-        if (a.generation !== b.generation) {
-          return (a.generation || 999) - (b.generation || 999);
-        }
-        return (a.birth_order || 999) - (b.birth_order || 999);
-      case "generation_desc":
-        if (b.generation !== a.generation) {
-          return (b.generation || 0) - (a.generation || 0);
-        }
-        return (b.birth_order || 0) - (a.birth_order || 0);
+      case "updated_desc":
       default:
-        return 0;
+        return (
+          new Date(b.updated_at || 0).getTime() -
+          new Date(a.updated_at || 0).getTime()
+        );
     }
   });
 
+  // Pagination
+  const totalPages = Math.ceil(sortedPersons.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedPersons = sortedPersons.slice(startIndex, endIndex);
+
+  // // Debug pagination
+  // console.log("Pagination Debug:", {
+  //   initialPersonsLength: initialPersons.length,
+  //   filteredPersonsLength: filteredPersons.length,
+  //   sortedPersonsLength: sortedPersons.length,
+  //   totalPages,
+  //   currentPage,
+  //   pageSize,
+  //   paginatedPersonsLength: paginatedPersons.length,
+  //   shouldShowPagination: sortedPersons.length > pageSize,
+  //   condition: sortedPersons.length > pageSize,
+  // });
+
+  // Update total count
+  useEffect(() => {
+    setTotalCount(filteredPersons.length);
+  }, [filteredPersons]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Reset to page 1 when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterOption]);
+
   return (
     <>
+      {/* Debug info */}
+
       <div className="mb-8 relative">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200/60 transition-all duration-300 relative z-10 w-full">
+        {/* Debug navigation visibility */}
+
+        <div
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200/60 transition-all duration-300 relative z-10 w-full"
+          style={{ backgroundColor: "rgba(255, 255, 0, 0.3)" }}
+        >
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto flex-1">
             <div className="relative flex-1 max-w-sm group">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
@@ -149,7 +185,9 @@ export default function DashboardMemberList({
                   <option value="updated_desc">Cập nhật (Mới nhất)</option>
                   <option value="updated_asc">Cập nhật (Cũ nhất)</option>
                   <option value="generation_asc">Theo thế hệ (Tăng dần)</option>
-                  <option value="generation_desc">Theo thế hệ (Giảm dần)</option>
+                  <option value="generation_desc">
+                    Theo thế hệ (Giảm dần)
+                  </option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                   <svg
@@ -178,9 +216,9 @@ export default function DashboardMemberList({
         </div>
       </div>
 
-      {sortedPersons.length > 0 ? (
+      {paginatedPersons.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedPersons.map((person) => (
+          {paginatedPersons.map((person) => (
             <PersonCard key={person.id} person={person} />
           ))}
         </div>
@@ -191,6 +229,50 @@ export default function DashboardMemberList({
             : "Chưa có thành viên nào. Hãy thêm thành viên đầu tiên."}
         </div>
       )}
+
+      {/* Pagination */}
+      {sortedPersons.length > pageSize && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-2 border border-stone-300 rounded-lg hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Trước
+          </button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`w-10 h-10 rounded-lg border transition-colors ${
+                  currentPage === page
+                    ? "bg-amber-500 text-white border-amber-500"
+                    : "border-stone-300 hover:bg-stone-50 text-stone-700"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 border border-stone-300 rounded-lg hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Sau
+          </button>
+        </div>
+      )}
+
+      {/* Results Info */}
+      <div className="text-center text-sm text-stone-600 mt-4">
+        Hiển thị {paginatedPersons.length} / {sortedPersons.length} thành viên
+        {sortedPersons.length > pageSize &&
+          ` - Trang ${currentPage}/${totalPages}`}
+      </div>
     </>
   );
 }

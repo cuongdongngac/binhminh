@@ -11,12 +11,11 @@ interface PageProps {
 }
 
 export default async function FamilyTreePage({ searchParams }: PageProps) {
-  const { rootId } = await searchParams;
+  const { rootId, view = "list" } = await searchParams;
 
   // If view is list, we only need persons, not relationships.
   // We fetch persons for all views to pass down as a prop if we want, or let components fetch.
-  // Actually, to make transitions fast and avoid duplicate fetching across components,
-  // we will fetch data here and pass it down as props.
+  // For list view, we implement pagination to avoid loading too many members
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
@@ -36,15 +35,25 @@ export default async function FamilyTreePage({ searchParams }: PageProps) {
 
   const canEdit = profile?.role === "admin" || profile?.role === "editor";
 
-  const { data: personsData } = await supabase
+  // For list view, implement pagination
+  const pageSize = 50; // 50 members per page
+  const page = 1; // Get from search params later
+
+  let personsData = [];
+  let relationships = [];
+
+  // Always fetch all persons for search/filter to work properly
+  const { data: allPersons } = await supabase
     .from("persons")
     .select("*")
     .order("birth_year", { ascending: true, nullsFirst: false });
 
   const { data: relsData } = await supabase.from("relationships").select("*");
 
-  const persons = personsData || [];
-  const relationships = relsData || [];
+  personsData = allPersons || [];
+  relationships = relsData || [];
+
+  const persons = personsData;
 
   // Prepare map and roots for tree views
   const personsMap = new Map();
