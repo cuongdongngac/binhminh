@@ -208,18 +208,10 @@ export default function DashboardMemberList({
             </div>
           </div>
           {canEdit && (
-            <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard?view=members_filter"
-                className="px-4 py-2.5 rounded-xl border border-stone-200/80 bg-white/90 text-stone-700 hover:bg-white hover:border-amber-300 font-semibold text-sm shadow-sm transition-all"
-              >
-                Lọc theo chi / đời
-              </Link>
-              <Link href="/dashboard/members/new" className="btn-primary">
-                <Plus className="size-4" strokeWidth={2.5} />
-                Thêm thành viên
-              </Link>
-            </div>
+            <Link href="/dashboard/members/new" className="btn-primary">
+              <Plus className="size-4" strokeWidth={2.5} />
+              Thêm thành viên
+            </Link>
           )}
         </div>
       </div>
