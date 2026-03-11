@@ -19,9 +19,14 @@ export default function DashboardHeader({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="group flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-800 group-hover:text-amber-700 transition-colors">
-              {config.siteName}
-            </h1>
+            <div className="text-center">
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 group-hover:text-amber-700 transition-colors">
+                GIA PHẢ
+              </h1>
+              <p className="text-xs sm:text-sm text-amber-600 font-bold group-hover:text-amber-500 transition-colors">
+                HỌ PHẠM ĐÔNG NGẠC
+              </p>
+            </div>
           </Link>
         </div>
         <div className="flex items-center gap-4">
