@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Person } from "@/types";
 import { ArrowUpDown, Filter, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 interface BranchRow {
   id: number;
@@ -45,6 +46,7 @@ export default function DashboardMembersBranchGenerationList({
   persons: Person[];
 }) {
   const supabase = createClient();
+  const searchParams = useSearchParams();
 
   const [branches, setBranches] = useState<BranchRow[]>([]);
   const [branchesLoading, setBranchesLoading] = useState(true);
@@ -56,6 +58,26 @@ export default function DashboardMembersBranchGenerationList({
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
+
+  // Allow deep-linking from branches table:
+  // /dashboard?view=members_filter&branch_id=123 (generation omitted => all)
+  useEffect(() => {
+    const rawBranchId = searchParams.get("branch_id");
+    if (rawBranchId != null && rawBranchId !== "") {
+      const parsed = Number(rawBranchId);
+      if (Number.isFinite(parsed)) setBranchId(parsed);
+    }
+
+    const rawGeneration = searchParams.get("generation");
+    if (rawGeneration != null && rawGeneration !== "") {
+      const parsed = Number(rawGeneration);
+      if (Number.isFinite(parsed)) setGeneration(parsed);
+    } else {
+      // If not provided, treat as "all"
+      setGeneration("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;

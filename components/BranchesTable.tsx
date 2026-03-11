@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Users,
   Home,
@@ -283,9 +284,13 @@ export default function BranchesTable() {
                     ) : (
                       <div className="flex items-center">
                         <Users className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-gray-900 font-medium">
+                        <Link
+                          href={`/dashboard?view=members_filter&branch_id=${branch.id}`}
+                          className="text-gray-900 font-medium hover:text-amber-700 hover:underline underline-offset-4 transition-colors"
+                          title="Xem thành viên theo chi"
+                        >
                           {branch.name}
-                        </span>
+                        </Link>
                       </div>
                     )}
                   </td>
