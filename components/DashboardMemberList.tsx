@@ -89,20 +89,6 @@ export default function DashboardMemberList({
   const endIndex = startIndex + pageSize;
   const paginatedPersons = sortedPersons.slice(startIndex, endIndex);
 
-  // // Debug pagination
-  // console.log("Pagination Debug:", {
-  //   initialPersonsLength: initialPersons.length,
-  //   filteredPersonsLength: filteredPersons.length,
-  //   sortedPersonsLength: sortedPersons.length,
-  //   totalPages,
-  //   currentPage,
-  //   pageSize,
-  //   paginatedPersonsLength: paginatedPersons.length,
-  //   shouldShowPagination: sortedPersons.length > pageSize,
-  //   condition: sortedPersons.length > pageSize,
-  // });
-
-  // Update total count
   useEffect(() => {
     setTotalCount(filteredPersons.length);
   }, [filteredPersons]);
@@ -118,15 +104,8 @@ export default function DashboardMemberList({
 
   return (
     <>
-      {/* Debug info */}
-
       <div className="mb-8 relative">
-        {/* Debug navigation visibility */}
-
-        <div
-          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200/60 transition-all duration-300 relative z-10 w-full"
-          style={{ backgroundColor: "rgba(255, 255, 0, 0.3)" }}
-        >
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/60 backdrop-blur-xl p-4 sm:p-5 rounded-2xl shadow-sm border border-stone-200/60 transition-all duration-300 relative z-10 w-full">
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto flex-1">
             <div className="relative flex-1 max-w-sm group">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-stone-400 group-focus-within:text-amber-500 transition-colors" />
