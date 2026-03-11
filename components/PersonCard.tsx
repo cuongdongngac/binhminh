@@ -21,7 +21,6 @@ export default function PersonCard({ person }: PersonCardProps) {
     if (gender === "female") return "bg-rose-100 text-rose-600";
     return "bg-stone-100 text-stone-600";
   };
-  console.log("branchId:", person.branch_id);
   return (
     <button
       onClick={() => setMemberModalId(person.id)}

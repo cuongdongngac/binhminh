@@ -2,6 +2,7 @@
 
 import { useDashboard } from "@/components/DashboardContext";
 import DashboardMemberList from "@/components/DashboardMemberList";
+import DashboardMembersBranchGenerationList from "@/components/DashboardMembersBranchGenerationList";
 import FamilyTree from "@/components/FamilyTree";
 import MindmapTree from "@/components/MindmapTree";
 import RootSelector from "@/components/RootSelector";
@@ -85,6 +86,12 @@ export default function DashboardViews({
               canEdit={canEdit}
               totalCount={persons.length}
             />
+          </div>
+        )}
+
+        {currentView === "members_filter" && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full relative z-10">
+            <DashboardMembersBranchGenerationList persons={persons} />
           </div>
         )}
 

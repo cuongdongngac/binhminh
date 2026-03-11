@@ -1,12 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { List, ListTree, Network, GitBranch, BookOpen } from "lucide-react";
+import {
+  List,
+  ListTree,
+  Network,
+  GitBranch,
+  BookOpen,
+  Filter,
+} from "lucide-react";
 import { useDashboard } from "./DashboardContext";
 import { useRouter } from "next/navigation";
 
 export type ViewMode =
   | "list"
+  | "members_filter"
   | "tree"
   | "mindmap"
   | "branches"
@@ -23,6 +31,11 @@ export default function ViewToggle() {
       icon: <BookOpen className="size-4" />,
     },
     { id: "list", label: "Danh sách", icon: <List className="size-4" /> },
+    {
+      id: "members_filter",
+      label: "Lọc chi/đời",
+      icon: <Filter className="size-4" />,
+    },
     { id: "tree", label: "Sơ đồ cây", icon: <Network className="size-4" /> },
     { id: "mindmap", label: "Mindmap", icon: <ListTree className="size-4" /> },
     {
