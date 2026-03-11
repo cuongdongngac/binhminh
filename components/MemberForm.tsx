@@ -79,6 +79,9 @@ export default function MemberForm({
   const [isInLaw, setIsInLaw] = useState<boolean>(
     initialData?.is_in_law || false,
   );
+  const [isNotable, setIsNotable] = useState<boolean>(
+    initialData?.is_notable || false,
+  );
 
   const [birthOrder, setBirthOrder] = useState<number | "">(
     initialData?.birth_order || "",
@@ -182,6 +185,7 @@ export default function MemberForm({
         death_day: isDeceased && deathDay !== "" ? Number(deathDay) : null,
         is_deceased: isDeceased,
         is_in_law: isInLaw,
+        is_notable: isNotable,
         birth_order: birthOrder === "" ? null : Number(birthOrder),
 
         // 👉 Thêm 2 dòng này
@@ -348,6 +352,42 @@ export default function MemberForm({
               </div>
               <span className="text-sm font-semibold text-stone-700 group-hover:text-amber-700 transition-colors">
                 Là con Dâu hoặc con Rể
+              </span>
+            </label>
+          </div>
+
+          <div className="flex items-center sm:mt-4 mt-2">
+            <label className="flex items-center gap-3 group">
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  checked={isNotable}
+                  onChange={(e) => setIsNotable(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="size-5 border-2 border-stone-300 rounded peer-checked:bg-amber-500 peer-checked:border-amber-500 transition-colors flex items-center justify-center">
+                  <motion.svg
+                    initial={false}
+                    animate={{
+                      opacity: isNotable ? 1 : 0,
+                      scale: isNotable ? 1 : 0.5,
+                    }}
+                    className="size-3 text-white pointer-events-none"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={4}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </motion.svg>
+                </div>
+              </div>
+              <span className="text-sm font-semibold text-stone-700 group-hover:text-amber-700 transition-colors">
+                Danh nhân
               </span>
             </label>
           </div>

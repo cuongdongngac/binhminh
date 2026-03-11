@@ -8,6 +8,7 @@ import {
   GitBranch,
   BookOpen,
   Filter,
+  Users,
 } from "lucide-react";
 import { useDashboard } from "./DashboardContext";
 import { useRouter } from "next/navigation";
@@ -18,7 +19,8 @@ export type ViewMode =
   | "tree"
   | "mindmap"
   | "branches"
-  | "introduction";
+  | "introduction"
+  | "notables";
 
 export default function ViewToggle() {
   const { view: currentView, setView } = useDashboard();
@@ -42,6 +44,11 @@ export default function ViewToggle() {
       id: "branches",
       label: "Các chi",
       icon: <GitBranch className="size-4" />,
+    },
+    {
+      id: "notables",
+      label: "Danh nhân dòng họ",
+      icon: <Users className="size-4" />,
     },
   ] as const;
 

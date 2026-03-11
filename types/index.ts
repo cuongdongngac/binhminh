@@ -44,6 +44,7 @@ export interface Person {
   // New fields
   is_deceased: boolean;
   is_in_law: boolean;
+  is_notable: boolean;
   birth_order: number | null;
   generation: number | null;
   branch_id: number | null;

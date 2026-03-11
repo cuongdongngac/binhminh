@@ -3,6 +3,7 @@
 import { Person } from "@/types";
 import { formatDisplayDate } from "@/utils/dateHelpers";
 import Image from "next/image";
+import Link from "next/link";
 import { useDashboard } from "./DashboardContext";
 import DefaultAvatar from "./DefaultAvatar";
 import { FemaleIcon, MaleIcon } from "./GenderIcons";
@@ -15,6 +16,7 @@ export default function PersonCard({ person }: PersonCardProps) {
   const { setMemberModalId } = useDashboard();
 
   const isDeceased = person.is_deceased;
+  const isNotable = person.is_notable;
 
   const getGenderStyle = (gender: string) => {
     if (gender === "male") return "bg-sky-100 text-sky-600";
@@ -61,6 +63,14 @@ export default function PersonCard({ person }: PersonCardProps) {
               <FemaleIcon className="size-5" />
             ) : null}
           </div>
+          {/* Notable Badge */}
+          {isNotable && (
+            <div className="absolute -top-1 -right-1 z-20">
+              <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-white">
+                ⭐
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -130,9 +140,22 @@ export default function PersonCard({ person }: PersonCardProps) {
                   Đời thứ {person.generation}
                 </span>
               )}
-              <div>
-                <BranchName branchId={person.branch_id} />
-              </div>
+              {person.branch_id != null && person.generation != null ? (
+                <Link
+                  href={`/dashboard?view=members_filter&branch_id=${person.branch_id}&generation=${person.generation}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 uppercase tracking-widest shadow-xs hover:bg-indigo-100 transition-colors cursor-pointer"
+                  title={`Xem tất cả thành viên chi này đời thứ ${person.generation}`}
+                >
+                  <BranchName branchId={person.branch_id} />
+                </Link>
+              ) : (
+                person.branch_id != null && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 uppercase tracking-widest shadow-xs">
+                    <BranchName branchId={person.branch_id} />
+                  </span>
+                )
+              )}
             </div>
           )}
         </div>

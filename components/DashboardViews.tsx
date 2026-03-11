@@ -9,6 +9,7 @@ import RootSelector from "@/components/RootSelector";
 import BranchesTable from "@/components/BranchesTable";
 import Introduction from "@/components/Introduction";
 import AudioPlayer from "@/components/AudioPlayer";
+import NotablesList from "@/components/NotablesList";
 import { Person, Relationship } from "@/types";
 import { useMemo } from "react";
 
@@ -112,6 +113,8 @@ export default function DashboardViews({
             </div>
           </div>
         )}
+
+        {currentView === "notables" && <NotablesList persons={persons} />}
 
         <div className="flex-1 w-full relative z-10">
           {currentView === "tree" && (
