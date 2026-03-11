@@ -82,6 +82,49 @@ export default function RelationshipManager({
   const [newSpouseBirthYear, setNewSpouseBirthYear] = useState("");
   const [newSpouseNote, setNewSpouseNote] = useState("");
 
+  // Get appropriate note to display based on relationship type and gender
+  const getDisplayNote = (rel: EnrichedRelationship): string | null => {
+    if (rel.type === "marriage" && rel.direction === "spouse") {
+      const note = rel.note?.toLowerCase() || "";
+
+      // Keywords that describe husband's status (should be visible when viewing the wife)
+      const husbandStatusKeywords = ["thiếp thứ", "tỳ", "thứ thiếp", "vợ lẽ"];
+
+      // Keywords that describe wife's status (should be visible when viewing the husband)
+      const wifeStatusKeywords = ["chính thất", "vợ cả", "vợ chính"];
+
+      if (
+        personGender === "female" &&
+        husbandStatusKeywords.some((keyword) => note.includes(keyword))
+      ) {
+        // Current person is wife, showing husband, and note describes husband's status
+        return rel.note;
+      }
+
+      if (
+        personGender === "male" &&
+        wifeStatusKeywords.some((keyword) => note.includes(keyword))
+      ) {
+        // Current person is husband, showing wife, and note describes wife's status
+        return rel.note;
+      }
+
+      // For other notes, show them as is (general relationship notes)
+      if (
+        !husbandStatusKeywords.some((keyword) => note.includes(keyword)) &&
+        !wifeStatusKeywords.some((keyword) => note.includes(keyword))
+      ) {
+        return rel.note;
+      }
+
+      // Don't show notes that don't apply to the current person's perspective
+      return null;
+    }
+
+    // For other relationship types, show note as is
+    return rel.note;
+  };
+
   // Fetch relationships
   const fetchRelationships = useCallback(async () => {
     try {
@@ -517,11 +560,16 @@ export default function RelationshipManager({
                         <span className="text-stone-900 font-medium text-sm">
                           {rel.targetPerson.full_name}
                         </span>
-                        {rel.note && (
-                          <span className="text-xs text-amber-600 font-medium italic mt-0.5">
-                            ({rel.note})
-                          </span>
-                        )}
+                        {(() => {
+                          const displayNote = getDisplayNote(rel);
+                          return (
+                            displayNote && (
+                              <span className="text-xs text-amber-600 font-medium italic mt-0.5">
+                                ({displayNote})
+                              </span>
+                            )
+                          );
+                        })()}
                         {rel.type === "adopted_child" && (
                           <span className="text-xs text-stone-400 italic mt-0.5">
                             (Con nuôi)
@@ -814,7 +862,10 @@ export default function RelationshipManager({
                 {groupByType("spouse").map((rel) => (
                   <option key={rel.id} value={rel.targetPerson.id}>
                     {rel.targetPerson.full_name}{" "}
-                    {rel.note ? `(${rel.note})` : ""}
+                    {(() => {
+                      const displayNote = getDisplayNote(rel);
+                      return displayNote ? `(${displayNote})` : "";
+                    })()}
                   </option>
                 ))}
               </select>
