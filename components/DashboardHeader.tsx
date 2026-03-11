@@ -16,22 +16,19 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-30 bg-white/80 border-b border-stone-200 shadow-sm transition-all duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="group flex items-center gap-2">
-            <div className="text-center">
-              <h1 className="text-xl sm:text-2xl font-serif font-bold text-stone-900 group-hover:text-amber-700 transition-colors">
-                GIA PHẢ
-              </h1>
-              <p className="text-xs sm:text-sm text-amber-600 font-bold group-hover:text-amber-500 transition-colors">
-                HỌ PHẠM ĐÔNG NGẠC
-              </p>
-            </div>
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          {children}
-          <HeaderMenu isAdmin={isAdmin} userEmail={userEmail} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Link href="/dashboard" className="group block">
+          <img
+            src="/assets/images/banerds.jpg"
+            alt="GIA PHẢ HỌ PHẠM ĐÔNG NGẠC"
+            className="w-full h-24 object-contain"
+          />
+        </Link>
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-4">{children}</div>
+          <div className="flex items-center gap-4">
+            <HeaderMenu isAdmin={isAdmin} userEmail={userEmail} />
+          </div>
         </div>
       </div>
     </header>

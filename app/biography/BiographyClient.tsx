@@ -23,12 +23,28 @@ export default function BiographyClient() {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!personId) return;
 
     const fetchData = async () => {
       setLoading(true);
+
+      // Check admin role
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        setIsAdmin(profile?.role === "admin");
+      }
 
       // Lấy thông tin person
       const { data: person } = await supabase
@@ -111,7 +127,7 @@ export default function BiographyClient() {
               <span className="font-medium">Quay lại {personName}</span>
             </Link>
 
-            {!isEditing && (
+            {!isEditing && isAdmin && (
               <button
                 onClick={() => {
                   setIsEditing(true);
@@ -229,15 +245,17 @@ export default function BiographyClient() {
                 Chưa có tiểu sử
               </h3>
               <p className="text-gray-500 mb-6">
-                Thành viên này chưa có tiểu sử. Hãy thêm tiểu sử đầu tiên!
+                Thành viên này chưa có tiểu sử.
               </p>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-md"
-              >
-                <Edit2 className="w-4 h-4" />
-                <span>Thêm tiểu sử</span>
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-md"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span>Thêm tiểu sử</span>
+                </button>
+              )}
             </div>
           )}
         </div>
