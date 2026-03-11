@@ -27,19 +27,24 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     try {
-      // For now, we'll create a simple manual reset flow
-      // In production, you'd integrate with an email service
+      // Try to get user using signInWithPassword with a dummy password
+      // This will tell us if the user exists without revealing their password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: "dummy-password-for-check-only",
+      });
 
-      // Check if user exists in our profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email", email)
-        .single();
-
-      if (profileError || !profile) {
+      if (signInError?.message?.includes("Invalid login credentials")) {
+        // User exists but wrong password - this is expected
+        // So the email exists in the system
+      } else if (signInError?.message?.includes("Email not confirmed")) {
+        // User exists but email not confirmed
+      } else if (signInError?.message?.includes("User not found")) {
         setError("Email không tồn tại trong hệ thống. Vui lòng liên hệ admin.");
         return;
+      } else if (!signInError) {
+        // This shouldn't happen with dummy password, but if it does, sign out
+        await supabase.auth.signOut();
       }
 
       // For demo purposes, we'll show a success message
@@ -49,6 +54,7 @@ export default function ForgotPasswordPage() {
       // You could also store a reset token in your database and send it via email
       // For now, we'll use a simple approach
     } catch (err: any) {
+      console.error("Forgot password error:", err);
       setError("Có lỗi xảy ra. Vui lòng thử lại sau.");
     } finally {
       setLoading(false);
