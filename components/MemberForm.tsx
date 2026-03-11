@@ -7,6 +7,7 @@ import { BranchSelect } from "@/components/BranchSelect";
 import {
   AlertCircle,
   Briefcase,
+  Calendar,
   Image as ImageIcon,
   Loader2,
   Lock,
@@ -736,23 +737,42 @@ export default function MemberForm({
         initial="hidden"
         animate="show"
         transition={{ delay: 0.2 }}
-        className="flex justify-end gap-3 sm:gap-4 pt-6"
+        className="flex justify-between items-center gap-3 sm:gap-4 pt-6"
       >
+        {/* Date Converter Tool Button */}
         <button
           type="button"
-          onClick={() => (onCancel ? onCancel() : router.back())}
-          className="btn"
+          onClick={() =>
+            window.open(
+              "/date-converter",
+              "_blank",
+              "width=800,height=600,scrollbars=yes,resizable=yes",
+            )
+          }
+          className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors border border-gray-300"
+          title="Mở công cụ chuyển đổi ngày âm dương"
         >
-          Hủy bỏ
+          <Calendar className="size-4" />
+          <span className="hidden sm:inline">Công cụ chuyển ngày</span>
         </button>
-        <button type="submit" disabled={loading} className="btn-primary">
-          {loading && <Loader2 className="size-4 animate-spin" />}
-          {loading
-            ? "Đang lưu..."
-            : isEditing
-              ? "Lưu thay đổi"
-              : "Thêm thành viên"}
-        </button>
+
+        <div className="flex gap-3 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => (onCancel ? onCancel() : router.back())}
+            className="btn"
+          >
+            Hủy bỏ
+          </button>
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading && <Loader2 className="size-4 animate-spin" />}
+            {loading
+              ? "Đang lưu..."
+              : isEditing
+                ? "Lưu thay đổi"
+                : "Thêm thành viên"}
+          </button>
+        </div>
       </motion.div>
     </form>
   );
