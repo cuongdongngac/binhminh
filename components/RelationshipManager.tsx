@@ -82,29 +82,6 @@ export default function RelationshipManager({
   const [newSpouseBirthYear, setNewSpouseBirthYear] = useState("");
   const [newSpouseNote, setNewSpouseNote] = useState("");
 
-  // Get appropriate note to display based on relationship type and gender
-  const getDisplayNote = (rel: EnrichedRelationship): string | null => {
-    console.log("Debug getDisplayNote:", {
-      personGender,
-      relType: rel.type,
-      relDirection: rel.direction,
-      targetPerson: rel.targetPerson.full_name,
-      targetGender: rel.targetPerson.gender,
-      note: rel.note,
-      noteLower: rel.note?.toLowerCase() || "",
-    });
-
-    // Simple rule: if viewing wife (female) and relationship is marriage, hide all notes
-    if (personGender === "female" && rel.type === "marriage") {
-      console.log("Hiding note - wife viewing marriage relationship");
-      return "";
-    }
-
-    // For all other cases, show note as is
-    console.log("Returning note - not wife viewing marriage");
-    return rel.note;
-  };
-
   // Fetch relationships
   const fetchRelationships = useCallback(async () => {
     try {
@@ -297,6 +274,7 @@ export default function RelationshipManager({
       setSelectedTargetId(null);
       setNewRelNote("");
       fetchRelationships();
+      router.refresh();
     } catch (err: unknown) {
       const e = err as Error;
       setError("Không thể thêm mối quan hệ: " + e.message);
@@ -377,12 +355,14 @@ export default function RelationshipManager({
         ]);
         setSelectedSpouseId("");
         fetchRelationships();
+        router.refresh();
       } else {
         setError(
           `Đã xảy ra lỗi. Chỉ lưu thành công ${successCount}/${validChildren.length} người.`,
         );
         setTimeout(() => setError(null), 5000);
         fetchRelationships();
+        router.refresh();
       }
     } catch (err: unknown) {
       const e = err as Error;
@@ -452,6 +432,7 @@ export default function RelationshipManager({
       setNewSpouseBirthYear("");
       setNewSpouseNote("");
       fetchRelationships();
+      router.refresh();
     } catch (err: unknown) {
       const e = err as Error;
       setError("Không thể thêm vợ/chồng: " + e.message);
@@ -470,6 +451,7 @@ export default function RelationshipManager({
         .eq("id", relId);
       if (error) throw error;
       fetchRelationships();
+      router.refresh();
     } catch (err: unknown) {
       const e = err as Error;
       setError("Không thể xóa: " + e.message);
@@ -478,7 +460,16 @@ export default function RelationshipManager({
   };
 
   const groupByType = (type: string) =>
-    relationships.filter((r) => r.direction === type);
+    relationships
+      .filter((r) => r.direction === type)
+      .sort((a, b) => {
+        const yearA = a.targetPerson.birth_year;
+        const yearB = b.targetPerson.birth_year;
+        if (yearA == null && yearB == null) return 0;
+        if (yearA == null) return 1;
+        if (yearB == null) return -1;
+        return yearA - yearB;
+      });
 
   if (loading)
     return (
@@ -540,16 +531,11 @@ export default function RelationshipManager({
                         <span className="text-stone-900 font-medium text-sm">
                           {rel.targetPerson.full_name}
                         </span>
-                        {(() => {
-                          const displayNote = getDisplayNote(rel);
-                          return (
-                            displayNote && (
-                              <span className="text-xs text-amber-600 font-medium italic mt-0.5">
-                                ({displayNote})
-                              </span>
-                            )
-                          );
-                        })()}
+                        {rel.note && (
+                          <span className="text-xs text-amber-600 font-medium italic mt-0.5">
+                            ({rel.note})
+                          </span>
+                        )}
                         {rel.type === "adopted_child" && (
                           <span className="text-xs text-stone-400 italic mt-0.5">
                             (Con nuôi)
@@ -842,10 +828,7 @@ export default function RelationshipManager({
                 {groupByType("spouse").map((rel) => (
                   <option key={rel.id} value={rel.targetPerson.id}>
                     {rel.targetPerson.full_name}{" "}
-                    {(() => {
-                      const displayNote = getDisplayNote(rel);
-                      return displayNote ? `(${displayNote})` : "";
-                    })()}
+                    {rel.note ? `(${rel.note})` : ""}
                   </option>
                 ))}
               </select>

@@ -12,12 +12,8 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 });
 export const metadata: Metadata = {
-  title: {
-    default: "GIA PHẢ HỌ PHẠM ĐÔNG NGẠC",
-    template: "%s | GIA PHẢ HỌ PHẠM ĐÔNG NGẠC",
-  },
-  description:
-    "GIA PHẢ HỌ PHẠM ĐÔNG NGẠC - Nền tảng gia phả hiện đại & bảo mật. Gìn giữ và lưu truyền những giá trị, cội nguồn và truyền thống tốt đẹp của dòng họ cho các thế hệ mai sau.",
+  title: config.siteName,
+  description: config.siteName,
 };
 
 export default function RootLayout({
