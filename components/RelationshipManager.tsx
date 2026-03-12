@@ -84,44 +84,24 @@ export default function RelationshipManager({
 
   // Get appropriate note to display based on relationship type and gender
   const getDisplayNote = (rel: EnrichedRelationship): string | null => {
-    if (rel.type === "marriage" && rel.direction === "spouse") {
-      const note = rel.note?.toLowerCase() || "";
+    console.log("Debug getDisplayNote:", {
+      personGender,
+      relType: rel.type,
+      relDirection: rel.direction,
+      targetPerson: rel.targetPerson.full_name,
+      targetGender: rel.targetPerson.gender,
+      note: rel.note,
+      noteLower: rel.note?.toLowerCase() || "",
+    });
 
-      // Keywords that describe husband's status (should be visible when viewing the wife)
-      const husbandStatusKeywords = ["thiếp thứ", "tỳ", "thứ thiếp", "vợ lẽ"];
-
-      // Keywords that describe wife's status (should be visible when viewing the husband)
-      const wifeStatusKeywords = ["chính thất", "vợ cả", "vợ chính"];
-
-      if (
-        personGender === "female" &&
-        husbandStatusKeywords.some((keyword) => note.includes(keyword))
-      ) {
-        // Current person is wife, showing husband, and note describes husband's status
-        return rel.note;
-      }
-
-      if (
-        personGender === "male" &&
-        wifeStatusKeywords.some((keyword) => note.includes(keyword))
-      ) {
-        // Current person is husband, showing wife, and note describes wife's status
-        return rel.note;
-      }
-
-      // For other notes, show them as is (general relationship notes)
-      if (
-        !husbandStatusKeywords.some((keyword) => note.includes(keyword)) &&
-        !wifeStatusKeywords.some((keyword) => note.includes(keyword))
-      ) {
-        return rel.note;
-      }
-
-      // Don't show notes that don't apply to the current person's perspective
-      return null;
+    // Simple rule: if viewing wife (female) and relationship is marriage, hide all notes
+    if (personGender === "female" && rel.type === "marriage") {
+      console.log("Hiding note - wife viewing marriage relationship");
+      return "";
     }
 
-    // For other relationship types, show note as is
+    // For all other cases, show note as is
+    console.log("Returning note - not wife viewing marriage");
     return rel.note;
   };
 
