@@ -81,10 +81,47 @@ export default function RelationshipManager({
   const [newSpouseName, setNewSpouseName] = useState("");
   const [newSpouseBirthYear, setNewSpouseBirthYear] = useState("");
   const [newSpouseNote, setNewSpouseNote] = useState("");
+  const [currentPersonGeneration, setCurrentPersonGeneration] = useState<
+    number | null
+  >(null);
+
+  // Get appropriate note to display based on relationship type and gender
+  const getDisplayNote = (rel: EnrichedRelationship): string | null => {
+    console.log("Debug getDisplayNote:", {
+      personGender,
+      relType: rel.type,
+      relDirection: rel.direction,
+      targetPerson: rel.targetPerson.full_name,
+      targetGender: rel.targetPerson.gender,
+      note: rel.note,
+      noteLower: rel.note?.toLowerCase() || "",
+    });
+
+    // Simple rule: if viewing wife (female) and relationship is marriage, hide all notes
+    if (personGender === "female" && rel.type === "marriage") {
+      console.log("Hiding note - wife viewing marriage relationship");
+      return "";
+    }
+
+    // For all other cases, show note as is
+    console.log("Returning note - not wife viewing marriage");
+    return rel.note;
+  };
 
   // Fetch relationships
   const fetchRelationships = useCallback(async () => {
     try {
+      // Get current person's generation
+      const { data: currentPerson } = await supabase
+        .from("persons")
+        .select("generation")
+        .eq("id", personId)
+        .single();
+
+      if (currentPerson) {
+        setCurrentPersonGeneration(currentPerson.generation);
+      }
+
       // Get all relationships where this person involved
       // This is a bit complex because we need to check both a and b columns
       const { data: relsA, error: errA } = await supabase
@@ -274,7 +311,6 @@ export default function RelationshipManager({
       setSelectedTargetId(null);
       setNewRelNote("");
       fetchRelationships();
-      router.refresh();
     } catch (err: unknown) {
       const e = err as Error;
       setError("Không thể thêm mối quan hệ: " + e.message);
@@ -307,9 +343,13 @@ export default function RelationshipManager({
           full_name: string;
           gender: "male" | "female" | "other";
           birth_year?: number;
+          generation?: number;
         } = {
           full_name: child.name.trim(),
           gender: child.gender,
+          generation: currentPersonGeneration
+            ? currentPersonGeneration + 1
+            : undefined,
         };
         if (child.birthYear.trim() !== "") {
           const year = parseInt(child.birthYear);
@@ -355,14 +395,12 @@ export default function RelationshipManager({
         ]);
         setSelectedSpouseId("");
         fetchRelationships();
-        router.refresh();
       } else {
         setError(
           `Đã xảy ra lỗi. Chỉ lưu thành công ${successCount}/${validChildren.length} người.`,
         );
         setTimeout(() => setError(null), 5000);
         fetchRelationships();
-        router.refresh();
       }
     } catch (err: unknown) {
       const e = err as Error;
@@ -396,9 +434,11 @@ export default function RelationshipManager({
         full_name: string;
         gender: "male" | "female" | "other";
         birth_year?: number;
+        generation?: number;
       } = {
         full_name: newSpouseName.trim(),
         gender: newSpouseGender,
+        generation: currentPersonGeneration || undefined,
       };
 
       if (newSpouseBirthYear.trim() !== "") {
@@ -432,7 +472,6 @@ export default function RelationshipManager({
       setNewSpouseBirthYear("");
       setNewSpouseNote("");
       fetchRelationships();
-      router.refresh();
     } catch (err: unknown) {
       const e = err as Error;
       setError("Không thể thêm vợ/chồng: " + e.message);
@@ -451,7 +490,6 @@ export default function RelationshipManager({
         .eq("id", relId);
       if (error) throw error;
       fetchRelationships();
-      router.refresh();
     } catch (err: unknown) {
       const e = err as Error;
       setError("Không thể xóa: " + e.message);
@@ -460,16 +498,7 @@ export default function RelationshipManager({
   };
 
   const groupByType = (type: string) =>
-    relationships
-      .filter((r) => r.direction === type)
-      .sort((a, b) => {
-        const yearA = a.targetPerson.birth_year;
-        const yearB = b.targetPerson.birth_year;
-        if (yearA == null && yearB == null) return 0;
-        if (yearA == null) return 1;
-        if (yearB == null) return -1;
-        return yearA - yearB;
-      });
+    relationships.filter((r) => r.direction === type);
 
   if (loading)
     return (
@@ -531,11 +560,16 @@ export default function RelationshipManager({
                         <span className="text-stone-900 font-medium text-sm">
                           {rel.targetPerson.full_name}
                         </span>
-                        {rel.note && (
-                          <span className="text-xs text-amber-600 font-medium italic mt-0.5">
-                            ({rel.note})
-                          </span>
-                        )}
+                        {(() => {
+                          const displayNote = getDisplayNote(rel);
+                          return (
+                            displayNote && (
+                              <span className="text-xs text-amber-600 font-medium italic mt-0.5">
+                                ({displayNote})
+                              </span>
+                            )
+                          );
+                        })()}
                         {rel.type === "adopted_child" && (
                           <span className="text-xs text-stone-400 italic mt-0.5">
                             (Con nuôi)
@@ -828,7 +862,10 @@ export default function RelationshipManager({
                 {groupByType("spouse").map((rel) => (
                   <option key={rel.id} value={rel.targetPerson.id}>
                     {rel.targetPerson.full_name}{" "}
-                    {rel.note ? `(${rel.note})` : ""}
+                    {(() => {
+                      const displayNote = getDisplayNote(rel);
+                      return displayNote ? `(${displayNote})` : "";
+                    })()}
                   </option>
                 ))}
               </select>
@@ -880,6 +917,15 @@ export default function RelationshipManager({
                       setBulkChildren(newBulk);
                     }}
                     className="flex-1 bg-white text-stone-900 placeholder-stone-400 text-sm rounded-md border-stone-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 p-2 border w-24"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Thế hệ"
+                    value={
+                      child.birthYear ? (currentPersonGeneration || 0) + 1 : ""
+                    }
+                    readOnly
+                    className="flex-1 bg-stone-100 text-stone-600 text-sm rounded-md border-stone-300 p-2 border w-20"
                   />
                   <button
                     onClick={() => {
