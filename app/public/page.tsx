@@ -21,23 +21,27 @@ export default function PublicPage() {
   useEffect(() => {
     const autoLoginAsGuest = async () => {
       try {
-        // Try to login as guest with provided credentials
-        const { data: authData, error: signInError } =
-          await supabase.auth.signInWithPassword({
-            email: "guest@giapha.com",
-            password: "giapha@123",
-          });
+        // Call server-side API to login as guest (credentials hidden)
+        const response = await fetch("/api/guest-login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-        if (signInError) {
-          console.error("Guest login failed:", signInError);
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          console.error("Guest login failed:", result.error);
           setError(
-            "Không thể đăng nhập với tài khoản guest: " + signInError.message,
+            "Không thể đăng nhập với tài khoản guest: " +
+              (result.error || "Lỗi không xác định"),
           );
           setLoading(false);
           return;
         }
 
-        console.log("Guest login successful:", authData);
+        console.log("Guest login successful");
 
         // Redirect to dashboard after successful login
         router.push("/dashboard?view=list");
@@ -50,7 +54,7 @@ export default function PublicPage() {
     };
 
     autoLoginAsGuest();
-  }, [supabase, router]);
+  }, [router, supabase]);
 
   if (loading) {
     return (
