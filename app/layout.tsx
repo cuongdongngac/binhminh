@@ -13,11 +13,11 @@ const playfair = Playfair_Display({
 });
 export const metadata: Metadata = {
   title: {
-    default: "GIA PHẢ HỌ PHẠM ĐÔNG NGẠC",
-    template: "%s | GIA PHẢ HỌ PHẠM ĐÔNG NGẠC",
+    default: "GIA PHẢ HỌ NGUYỄN BỈM SƠN",
+    template: "%s | GIA PHẢ HỌ NGUYỄN BỈM SƠN",
   },
   description:
-    "GIA PHẢ HỌ PHẠM ĐÔNG NGẠC - Nền tảng gia phả hiện đại & bảo mật. Gìn giữ và lưu truyền những giá trị, cội nguồn và truyền thống tốt đẹp của dòng họ cho các thế hệ mai sau.",
+    "GIA PHẢ HỌ NGUYỄN BỈM SƠN - Nền tảng gia phả hiện đại & bảo mật. Gìn giữ và lưu truyền những giá trị, cội nguồn và truyền thống tốt đẹp của dòng họ cho các thế hệ mai sau.",
 };
 
 export default function RootLayout({
