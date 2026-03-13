@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Edit2, BookOpen, Save, X } from "lucide-react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
-import Link from "next/link";
 
 export default function Introduction() {
   const [introduction, setIntroduction] = useState<string | null>(null);
@@ -113,22 +112,13 @@ export default function Introduction() {
         </div>
 
         {!isEditing && isAdmin && (
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/config"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span>Cấu hình</span>
-            </Link>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Edit2 className="w-4 h-4" />
-              <span>Cập nhật giới thiệu</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Edit2 className="w-4 h-4" />
+            <span>Cập nhật giới thiệu</span>
+          </button>
         )}
       </div>
 
